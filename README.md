@@ -18,12 +18,11 @@ just a lightweight script that speaks MCP over stdin/stdout and wraps the Obsidi
 
 ## Installation
 
-Clone the repo and make the entry point executable:
+Clone the repo:
 
 ```sh
 git clone https://github.com/KingOfKalk/mcp_bash_obsidian_cli.git
 cd mcp_bash_obsidian_cli
-chmod +x obsidian-mcp.sh
 ```
 
 Note the absolute path to `obsidian-mcp.sh` — you'll need it for your MCP
