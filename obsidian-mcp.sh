@@ -15,13 +15,54 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
+# 0. Version (managed by release-please)
+# ---------------------------------------------------------------------------
+VERSION="0.1.0" # x-release-please-version
+
+print_version() {
+    printf 'obsidian-mcp.sh %s\n' "$VERSION"
+}
+
+print_usage() {
+    cat <<EOF
+obsidian-mcp.sh ${VERSION} — MCP server (stdio) wrapping the Obsidian CLI.
+
+Usage:
+  obsidian-mcp.sh <vault-name>
+  obsidian-mcp.sh --help | -h
+  obsidian-mcp.sh --version | -v
+
+Arguments:
+  <vault-name>      Name of the Obsidian vault to pin this server to.
+
+Environment:
+  OBSIDIAN_BIN      Path to the obsidian binary (default: obsidian).
+  OBSIDIAN_MCP_LOG  Log file path (default: /tmp/obsidian-mcp.log).
+
+The server speaks MCP over stdin/stdout and is normally launched by an MCP
+client (e.g. via mcp.json), not run interactively.
+EOF
+}
+
+# ---------------------------------------------------------------------------
 # 1. Config from argv + env
 # ---------------------------------------------------------------------------
 
-if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
-    echo "usage: obsidian-mcp.sh <vault-name>" >&2
-    exit 2
-fi
+case "${1:-}" in
+    -h|--help)
+        print_usage
+        exit 0
+        ;;
+    -v|--version)
+        print_version
+        exit 0
+        ;;
+    ""|-*)
+        print_usage >&2
+        exit 2
+        ;;
+esac
+
 OBSIDIAN_VAULT="$1"
 shift
 
@@ -885,11 +926,11 @@ dispatch_tool_call() {
 # 10. Main loop
 # ---------------------------------------------------------------------------
 
-INIT_RESULT='{
-  "protocolVersion": "2024-11-05",
-  "serverInfo": {"name": "obsidian-mcp", "version": "0.1.0"},
-  "capabilities": {"tools": {}}
-}'
+INIT_RESULT=$(jq -nc --arg v "$VERSION" '{
+  protocolVersion: "2024-11-05",
+  serverInfo: {name: "obsidian-mcp", version: $v},
+  capabilities: {tools: {}}
+}')
 
 log "obsidian-mcp.sh starting; vault=$OBSIDIAN_VAULT bin=$OBSIDIAN_BIN"
 
