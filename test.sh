@@ -163,7 +163,7 @@ assert_eq "parse error code" "-32700" \
 # 14. missing vault arg -> exit 2 with usage message
 # ---------------------------------------------------------------------------
 out=$(./obsidian-mcp.sh </dev/null 2>&1; printf 'rc=%s' "$?")
-assert_contains "missing vault arg prints usage" "usage:" "$out"
+assert_contains "missing vault arg prints usage" "Usage:" "$out"
 assert_contains "missing vault arg rc=2" "rc=2" "$out"
 
 # ---------------------------------------------------------------------------
