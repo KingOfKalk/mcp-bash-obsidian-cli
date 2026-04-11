@@ -554,6 +554,17 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
           "title": {"type": "string"}
         }
       }
+    },
+    {
+      "name": "date_time",
+      "description": "Return the current date/time. With no args, returns a JSON object (iso, date, time, weekday, timezone, unix, utc). With 'format', returns a single formatted string using strftime conversion specifiers (see 'man date'). Useful for daily-note and journaling workflows.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "format": {"type": "string", "description": "strftime format string, e.g. '%Y-%m-%d %H:%M'. When present, return a plain string instead of the default JSON object."},
+          "utc": {"type": "boolean", "description": "Use UTC instead of local time (default: false)."}
+        }
+      }
     }
   ]
 }
@@ -886,6 +897,41 @@ tool_bookmark_add() {
     build_args "$1"
     run_obsidian bookmark "${ARGS_OUT[@]}"
     echo "ok"
+}
+
+# ----- utility tools -----
+
+tool_date_time() {
+    local args_json="$1"
+    local fmt utc_flag=""
+    fmt=$(printf '%s' "$args_json" | jq -r '.format // empty')
+    if printf '%s' "$args_json" | jq -e '.utc == true' >/dev/null 2>&1; then
+        utc_flag="-u"
+    fi
+
+    if [ -n "$fmt" ]; then
+        date $utc_flag +"$fmt"
+        return
+    fi
+
+    local iso d t wd tz unx utc_bool
+    iso=$(date $utc_flag +"%Y-%m-%dT%H:%M:%S%z")
+    d=$(date $utc_flag +"%Y-%m-%d")
+    t=$(date $utc_flag +"%H:%M:%S")
+    wd=$(date $utc_flag +"%A")
+    tz=$(date $utc_flag +"%Z")
+    unx=$(date $utc_flag +"%s")
+    if [ -n "$utc_flag" ]; then utc_bool=true; else utc_bool=false; fi
+
+    jq -nc \
+        --arg iso "$iso" \
+        --arg date "$d" \
+        --arg time "$t" \
+        --arg weekday "$wd" \
+        --arg timezone "$tz" \
+        --argjson unix "$unx" \
+        --argjson utc "$utc_bool" \
+        '{iso:$iso, date:$date, time:$time, weekday:$weekday, timezone:$timezone, unix:$unix, utc:$utc}'
 }
 
 # ---------------------------------------------------------------------------

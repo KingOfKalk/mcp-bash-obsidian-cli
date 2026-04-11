@@ -67,7 +67,7 @@ assert_eq "tools/list result.tools is array" "array" \
 names=$(printf '%s' "$r" | jq -r '.result.tools[].name' | tr '\n' ' ')
 
 # 3. tools/list — required tools present
-for t in file_read search file_create daily_read tasks_list wordcount file_append property_set; do
+for t in file_read search file_create daily_read tasks_list wordcount file_append property_set date_time; do
     case " $names" in
         *" $t "*)
             printf 'PASS: tools/list contains %s\n' "$t"
@@ -180,6 +180,41 @@ r=$(rpc '{"jsonrpc":"2.0","id":11,"method":"tools/call","params":{"name":"tasks_
 text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
 assert_eq "tasks_list returns array" "array" \
     "$(printf '%s' "$text" | jq -r 'type')"
+
+# ---------------------------------------------------------------------------
+# 17. tools/call — date_time default returns structured JSON
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":12,"method":"tools/call","params":{"name":"date_time","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+d=$(printf '%s' "$text" | jq -r '.date')
+case "$d" in
+    [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])
+        printf 'PASS: date_time default .date is YYYY-MM-DD\n'
+        PASS=$((PASS + 1))
+        ;;
+    *)
+        printf 'FAIL: date_time default .date bad format: %s\n' "$d"
+        FAIL=$((FAIL + 1))
+        ;;
+esac
+assert_eq "date_time default .unix is number" "number" \
+    "$(printf '%s' "$text" | jq -r '.unix | type')"
+assert_eq "date_time default .utc is false" "false" \
+    "$(printf '%s' "$text" | jq -r '.utc')"
+
+# ---------------------------------------------------------------------------
+# 18. tools/call — date_time custom format passthrough
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":13,"method":"tools/call","params":{"name":"date_time","arguments":{"format":"FIXED-STRING"}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "date_time format passthrough" "FIXED-STRING" "$text"
+
+# ---------------------------------------------------------------------------
+# 19. tools/call — date_time utc flag yields UTC timezone
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":14,"method":"tools/call","params":{"name":"date_time","arguments":{"utc":true,"format":"%Z"}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "date_time utc %Z is UTC" "UTC" "$text"
 
 # ---------------------------------------------------------------------------
 # Summary
