@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.4.0...v0.5.0) (2026-04-15)
+
+
+### Features
+
+* **skills:** bundle vault and daily skills using MCP tools ([#21](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/21)) ([989468f](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/989468f9ccf0425215fe378db3857e70a5afde7d))
+
 ## [0.4.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.3.1...v0.4.0) (2026-04-15)
 
 
