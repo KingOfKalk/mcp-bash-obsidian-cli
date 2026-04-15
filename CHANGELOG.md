@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v1.0.0...v1.1.0) (2026-04-15)
+
+
+### Features
+
+* add UI, awareness, and navigation tools for Obsidian CLI ([#29](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/29)) ([0eee882](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/0eee8825303f9a39b9ff53952722c2085dd2463d))
+
 ## [1.0.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.5.1...v1.0.0) (2026-04-15)
 
 
