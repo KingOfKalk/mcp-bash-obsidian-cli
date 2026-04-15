@@ -598,16 +598,19 @@ build_args() {
 
     ARGS_OUT=()
     local line
-    while IFS= read -r line; do
+    # NUL-delimited records so values containing newlines (e.g. multiline
+    # `content`) stay in a single argv element.
+    while IFS= read -r -d '' line; do
         [ -z "$line" ] && continue
         ARGS_OUT+=("$line")
-    done < <(printf '%s' "$json" | jq -r "
+    done < <(printf '%s' "$json" | jq -j "
         $skip_filter
         | to_entries[]
         | select(.value != null and .value != false)
         | if (.value == true) then .key
           else \"\(.key)=\(.value|tostring)\"
           end
+        | . + \"\u0000\"
     ")
 }
 

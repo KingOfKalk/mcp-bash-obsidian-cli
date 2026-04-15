@@ -146,6 +146,34 @@ assert_eq "file_create success text" "ok" \
     "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
 
 # ---------------------------------------------------------------------------
+# 11b. file_create / file_append preserve multiline content (#11)
+# ---------------------------------------------------------------------------
+MOCK_ARGS_LOG=$(mktemp)
+export MOCK_ARGS_LOG
+: >"$MOCK_ARGS_LOG"
+
+r=$(rpc '{"jsonrpc":"2.0","id":91,"method":"tools/call","params":{"name":"file_create","arguments":{"name":"ml.md","content":"---\ntags:\n  - Test\n---\n# Title\n- item"}}}')
+assert_eq "file_create multiline ok" "ok" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+log_body=$(cat "$MOCK_ARGS_LOG")
+assert_contains "file_create multiline: frontmatter open" "arg=content=---" "$log_body"
+assert_contains "file_create multiline: tags line"        "tags:"             "$log_body"
+assert_contains "file_create multiline: heading"          "# Title"           "$log_body"
+assert_contains "file_create multiline: list item"        "- item"            "$log_body"
+
+: >"$MOCK_ARGS_LOG"
+r=$(rpc '{"jsonrpc":"2.0","id":92,"method":"tools/call","params":{"name":"file_append","arguments":{"file":"ml.md","content":"line1\nline2\nline3"}}}')
+assert_eq "file_append multiline ok" "ok" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+log_body=$(cat "$MOCK_ARGS_LOG")
+assert_contains "file_append multiline: line1" "arg=content=line1" "$log_body"
+assert_contains "file_append multiline: line2" "line2"             "$log_body"
+assert_contains "file_append multiline: line3" "line3"             "$log_body"
+
+rm -f "$MOCK_ARGS_LOG"
+unset MOCK_ARGS_LOG
+
+# ---------------------------------------------------------------------------
 # 12. notification -> no response on stdout
 # ---------------------------------------------------------------------------
 out=$(printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
