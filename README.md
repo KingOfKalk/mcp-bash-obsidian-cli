@@ -49,6 +49,45 @@ The plugin registers a single MCP server (`obsidian`) that runs
 change `OBSIDIAN_VAULT` and restart Claude Code. For multiple vaults in
 parallel, prefer the manual configuration in Option 2.
 
+#### Per-project vault overrides (Claude Code)
+
+If you'd rather not re-export shell vars every time you switch projects,
+Claude Code can inject MCP env vars on a per-project basis via
+`~/.claude/settings.json`. This is the recommended path for pinning a
+different vault to each project:
+
+```json
+{
+  "projects": {
+    "/path/to/project": {
+      "mcpServers": {
+        "plugin:mcp-bash-cli:obsidian": {
+          "env": {
+            "OBSIDIAN_VAULT": "Notes"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Restart Claude Code after editing the file so the override is picked up.
+Verify with `/mcp`, and/or call the server's debug tool to confirm the
+effective env configuration.
+
+**Gotchas** — all three of these fail *silently*, with no warning from
+Claude Code or the server, so double-check the key format:
+
+- **The server key must exactly match the name shown by `/mcp`**, colons
+  and all (`plugin:mcp-bash-cli:obsidian`). Underscore variants such as
+  `plugin_mcp-bash-cli_obsidian` are silently ignored.
+- **`mcpServers` in `.claude/settings.local.json` is not honored** for MCP
+  env overrides — put the block in `~/.claude/settings.json` instead.
+- **A top-level `env` block in `.claude/settings.local.json`** only sets
+  Claude Code's own session env vars; it does *not* propagate into the MCP
+  server process, so `OBSIDIAN_VAULT` set there won't reach the plugin.
+
 ### Option 2: Manual clone
 
 Clone the repo:
@@ -97,6 +136,11 @@ Notes:
 - **Claude Code (project scope):** `.mcp.json` at the repo root, or run
   `claude mcp add obsidian /absolute/path/to/obsidian-mcp.sh MyVault`.
 - **Claude Code (user scope):** the `mcpServers` section of `~/.claude.json`.
+- **Claude Code (plugin env overrides, per project):** use the
+  `projects.<path>.mcpServers.<server>.env` block in
+  `~/.claude/settings.json`. See
+  [Per-project vault overrides](#per-project-vault-overrides-claude-code)
+  above.
 - **Claude Desktop:** `claude_desktop_config.json`
   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
