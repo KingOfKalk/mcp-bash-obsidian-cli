@@ -66,8 +66,11 @@ assert_eq "tools/list result.tools is array" "array" \
 
 names=$(printf '%s' "$r" | jq -r '.result.tools[].name' | tr '\n' ' ')
 
-# 3. tools/list — required tools present
-for t in file_read search file_create daily_read tasks_list wordcount file_append property_set date_time; do
+# 3. tools/list — required tools present (core + new UI/awareness set)
+for t in file_read search file_create daily_read tasks_list wordcount file_append property_set date_time \
+         file_open tabs_list workspace_tree recents_list command_run commands_list hotkeys_list vault_info \
+         search_open tab_open workspace_save workspace_load template_insert file_history_restore base_query \
+         bases_list web_open daily_open; do
     case " $names" in
         *" $t "*)
             printf 'PASS: tools/list contains %s\n' "$t"
@@ -76,20 +79,6 @@ for t in file_read search file_create daily_read tasks_list wordcount file_appen
         *)
             printf 'FAIL: tools/list missing %s\n' "$t"
             FAIL=$((FAIL + 1))
-            ;;
-    esac
-done
-
-# 4. tools/list — single-vault cuts must NOT be present
-for t in vault_info commands_list hotkeys_list command_exec; do
-    case " $names" in
-        *" $t "*)
-            printf 'FAIL: %s should be cut from registry\n' "$t"
-            FAIL=$((FAIL + 1))
-            ;;
-        *)
-            printf 'PASS: %s correctly absent\n' "$t"
-            PASS=$((PASS + 1))
             ;;
     esac
 done
@@ -257,6 +246,115 @@ assert_eq "debug .env.OBSIDIAN_MCP_LOG" "/tmp/obsidian-mcp-test.log" \
     "$(printf '%s' "$text" | jq -r '.env.OBSIDIAN_MCP_LOG')"
 assert_contains "debug .version looks like semver" "." \
     "$(printf '%s' "$text" | jq -r '.version')"
+
+# ---------------------------------------------------------------------------
+# 21. file_open with no args — active-file UI open path
+# ---------------------------------------------------------------------------
+MOCK_ARGS_LOG=$(mktemp)
+export MOCK_ARGS_LOG
+: >"$MOCK_ARGS_LOG"
+
+r=$(rpc '{"jsonrpc":"2.0","id":21,"method":"tools/call","params":{"name":"file_open","arguments":{}}}')
+assert_eq "file_open returns ok" "ok" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+assert_contains "file_open invoked 'open' command" "cmd=open" "$(cat "$MOCK_ARGS_LOG")"
+
+: >"$MOCK_ARGS_LOG"
+r=$(rpc '{"jsonrpc":"2.0","id":22,"method":"tools/call","params":{"name":"file_open","arguments":{"file":"note.md","newtab":true}}}')
+log_body=$(cat "$MOCK_ARGS_LOG")
+assert_contains "file_open passes file arg" "arg=file=note.md" "$log_body"
+assert_contains "file_open passes newtab flag" "arg=newtab" "$log_body"
+
+# ---------------------------------------------------------------------------
+# 22. tabs_list returns JSON array with active tab
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":23,"method":"tools/call","params":{"name":"tabs_list","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "tabs_list is JSON array" "array" \
+    "$(printf '%s' "$text" | jq -r 'type')"
+assert_eq "tabs_list has active tab" "active.md" \
+    "$(printf '%s' "$text" | jq -r '.[] | select(.active==true) | .file')"
+
+# ---------------------------------------------------------------------------
+# 23. workspace_tree returns JSON
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":24,"method":"tools/call","params":{"name":"workspace_tree","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "workspace_tree is JSON object" "object" \
+    "$(printf '%s' "$text" | jq -r 'type')"
+
+# ---------------------------------------------------------------------------
+# 24. command_run passes id through
+# ---------------------------------------------------------------------------
+: >"$MOCK_ARGS_LOG"
+r=$(rpc '{"jsonrpc":"2.0","id":25,"method":"tools/call","params":{"name":"command_run","arguments":{"id":"app:go-back"}}}')
+assert_eq "command_run returns ok" "ok" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+log_body=$(cat "$MOCK_ARGS_LOG")
+assert_contains "command_run invoked 'command'" "cmd=command" "$log_body"
+assert_contains "command_run passes id" "arg=id=app:go-back" "$log_body"
+
+# ---------------------------------------------------------------------------
+# 25. vault_info returns kv->json
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":26,"method":"tools/call","params":{"name":"vault_info","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "vault_info.name = TestVault" "TestVault" \
+    "$(printf '%s' "$text" | jq -r '.name')"
+assert_eq "vault_info.files = 42" "42" \
+    "$(printf '%s' "$text" | jq -r '.files')"
+
+# ---------------------------------------------------------------------------
+# 26. recents_list returns text
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":27,"method":"tools/call","params":{"name":"recents_list","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_contains "recents_list has today.md" "today.md" "$text"
+
+# ---------------------------------------------------------------------------
+# 27. commands_list returns command ids
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":28,"method":"tools/call","params":{"name":"commands_list","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_contains "commands_list contains editor:toggle-source" "editor:toggle-source" "$text"
+
+# ---------------------------------------------------------------------------
+# 28. file_history_restore with version
+# ---------------------------------------------------------------------------
+: >"$MOCK_ARGS_LOG"
+r=$(rpc '{"jsonrpc":"2.0","id":29,"method":"tools/call","params":{"name":"file_history_restore","arguments":{"file":"note.md","version":3}}}')
+assert_eq "file_history_restore returns ok" "ok" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+log_body=$(cat "$MOCK_ARGS_LOG")
+assert_contains "file_history_restore invoked history:restore" "cmd=history:restore" "$log_body"
+assert_contains "file_history_restore passes version" "arg=version=3" "$log_body"
+
+# ---------------------------------------------------------------------------
+# 29. base_query returns JSON
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":30,"method":"tools/call","params":{"name":"base_query","arguments":{"file":"projects.base"}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "base_query is JSON array" "array" \
+    "$(printf '%s' "$text" | jq -r 'type')"
+
+# ---------------------------------------------------------------------------
+# 30. bases_list returns base files
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":31,"method":"tools/call","params":{"name":"bases_list","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_contains "bases_list has projects.base" "projects.base" "$text"
+
+# ---------------------------------------------------------------------------
+# 31. daily_open invokes 'daily' (distinct from daily:read)
+# ---------------------------------------------------------------------------
+: >"$MOCK_ARGS_LOG"
+r=$(rpc '{"jsonrpc":"2.0","id":32,"method":"tools/call","params":{"name":"daily_open","arguments":{}}}')
+assert_eq "daily_open returns ok" "ok" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+assert_contains "daily_open invoked 'daily'" "cmd=daily" "$(cat "$MOCK_ARGS_LOG")"
+
+rm -f "$MOCK_ARGS_LOG"
+unset MOCK_ARGS_LOG
 
 # ---------------------------------------------------------------------------
 # Summary

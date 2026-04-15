@@ -109,7 +109,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
   "tools": [
     {
       "name": "file_info",
-      "description": "Get file metadata (size, dates) for a note in the vault.",
+      "description": "Get file metadata (size, dates) for a note in the vault. Defaults to the active file if no file/path is given — use this to inspect whatever the user is currently viewing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -134,7 +134,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
     },
     {
       "name": "file_read",
-      "description": "Read the full contents of a file in the vault.",
+      "description": "Read the full contents of a file in the vault. Defaults to the currently active file in Obsidian if no file/path is given — use this to read whatever note the user is looking at right now.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -193,7 +193,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
     },
     {
       "name": "properties_list",
-      "description": "List frontmatter properties (vault-wide or per-file). Note: vault-wide listings may be empty on some CLI versions; pass a file or path for reliable results.",
+      "description": "List frontmatter properties (vault-wide or per-file). Defaults to the active file if no file/path is given. Note: vault-wide listings may be empty on some CLI versions; pass a file or path for reliable results.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -248,7 +248,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
     },
     {
       "name": "tasks_list",
-      "description": "List tasks. Note: without file scope, may return empty on some CLI versions; pass file or path for reliable results.",
+      "description": "List tasks. Defaults to the active file if no file/path is given. Note: without file scope, may return empty on some CLI versions; pass file or path for reliable results.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -266,7 +266,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
     },
     {
       "name": "backlinks",
-      "description": "List incoming links to a file.",
+      "description": "List incoming links to a file. Defaults to the active file if no file/path is given.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -279,7 +279,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
     },
     {
       "name": "links_outgoing",
-      "description": "List outgoing links from a file.",
+      "description": "List outgoing links from a file. Defaults to the active file if no file/path is given.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -334,7 +334,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
     },
     {
       "name": "outline",
-      "description": "Get the heading outline of a file.",
+      "description": "Get the heading outline of a file. Defaults to the active file if no file/path is given.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -346,7 +346,7 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
     },
     {
       "name": "wordcount",
-      "description": "Get word and character counts for a file.",
+      "description": "Get word and character counts for a file. Defaults to the active file if no file/path is given.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -552,6 +552,341 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
           "search": {"type": "string"},
           "url": {"type": "string"},
           "title": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "file_open",
+      "description": "Open a file in the Obsidian UI for the user. Defaults to the active file if no file/path is given. Use newtab=true to open in a new tab.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"},
+          "newtab": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "file_unique",
+      "description": "Create a note with a collision-free name (auto-suffixes if the name already exists). Optionally open it in the UI.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "content": {"type": "string"},
+          "paneType": {"type": "string"},
+          "open": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "random_open",
+      "description": "Open a random note in the Obsidian UI.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "folder": {"type": "string"},
+          "newtab": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "random_read",
+      "description": "Read a random note (without opening it in the UI).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "folder": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "vault_info",
+      "description": "Show info (name, path, file/folder counts, size) for the currently pinned vault.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "info": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "vaults_list",
+      "description": "List all Obsidian vaults known to this machine.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "total": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "recents_list",
+      "description": "List recently opened files. Useful for awareness of what the user has been working on.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "total": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "web_open",
+      "description": "Open a URL in Obsidian's web viewer.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {"type": "string"},
+          "newtab": {"type": "boolean"}
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "name": "search_open",
+      "description": "Open the Obsidian search panel, optionally prefilled with a query.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "daily_open",
+      "description": "Open today's daily note in the Obsidian UI (the 'daily_read' tool only returns its text).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "paneType": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "workspace_tree",
+      "description": "Show the live workspace layout tree: every pane, split, and tab the user currently has open. The most complete 'what is the user looking at' signal.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ids": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "tabs_list",
+      "description": "List currently open tabs (and which tab is active).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ids": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "tab_open",
+      "description": "Open a file in a new tab, optionally in a specific pane group or view type.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"},
+          "group": {"type": "string"},
+          "view": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "workspaces_list",
+      "description": "List saved workspaces.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "total": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "workspace_save",
+      "description": "Save the current pane layout as a named workspace.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"}
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "name": "workspace_load",
+      "description": "Switch to a saved workspace by name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"}
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "name": "workspace_delete",
+      "description": "Delete a saved workspace by name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"}
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "name": "commands_list",
+      "description": "List available Obsidian command ids (optionally filtered). Pair with command_run to execute one.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filter": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "command_run",
+      "description": "Execute any Obsidian command by its id (e.g. 'editor:toggle-source', 'graph:open', 'app:go-back'). One tool covers every action in the command palette.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"}
+        },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "hotkeys_list",
+      "description": "List hotkeys for all Obsidian commands.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "verbose": {"type": "boolean"}
+        }
+      }
+    },
+    {
+      "name": "hotkey_get",
+      "description": "Look up the hotkey bound to a specific command id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "verbose": {"type": "boolean"}
+        },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "template_insert",
+      "description": "Insert a template into the active file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"}
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "name": "file_diff",
+      "description": "List or compare versions of a file from local recovery or sync history.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"},
+          "from": {"type": "string"},
+          "to": {"type": "string"},
+          "filter": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "file_history",
+      "description": "List local recovery versions for a file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "file_history_list",
+      "description": "List all files that have local recovery history.",
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+      "name": "file_history_read",
+      "description": "Read a specific local recovery version of a file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"},
+          "version": {"type": "number"}
+        }
+      }
+    },
+    {
+      "name": "file_history_restore",
+      "description": "Restore a file to a specific local recovery version.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"},
+          "version": {"type": "number"}
+        },
+        "required": ["version"]
+      }
+    },
+    {
+      "name": "bases_list",
+      "description": "List all .base files in the vault.",
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+      "name": "base_views",
+      "description": "List views in a base file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "base_query",
+      "description": "Query a base and return its results.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"},
+          "view": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "base_create",
+      "description": "Create a new item in a base.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "path": {"type": "string"},
+          "view": {"type": "string"},
+          "name": {"type": "string"},
+          "content": {"type": "string"}
         }
       }
     },
@@ -904,6 +1239,179 @@ tool_task_update() {
 tool_bookmark_add() {
     build_args "$1"
     run_obsidian bookmark "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+# ----- UI / navigation / awareness tools -----
+
+tool_file_open() {
+    build_args "$1"
+    run_obsidian open "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_file_unique() {
+    build_args "$1"
+    run_obsidian unique "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_random_open() {
+    build_args "$1"
+    run_obsidian random "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_random_read() {
+    build_args "$1"
+    run_obsidian random:read "${ARGS_OUT[@]}"
+}
+
+tool_vault_info() {
+    build_args "$1"
+    run_obsidian vault "${ARGS_OUT[@]}" | kv_to_json
+}
+
+tool_vaults_list() {
+    build_args "$1"
+    run_obsidian vaults "${ARGS_OUT[@]}"
+}
+
+tool_recents_list() {
+    build_args "$1"
+    run_obsidian recents "${ARGS_OUT[@]}"
+}
+
+tool_web_open() {
+    build_args "$1"
+    run_obsidian web "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_search_open() {
+    build_args "$1"
+    run_obsidian search:open "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_daily_open() {
+    build_args "$1"
+    run_obsidian daily "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_workspace_tree() {
+    build_args "$1"
+    ARGS_OUT+=("format=json")
+    run_obsidian workspace "${ARGS_OUT[@]}"
+}
+
+tool_tabs_list() {
+    build_args "$1"
+    ARGS_OUT+=("format=json")
+    run_obsidian tabs "${ARGS_OUT[@]}"
+}
+
+tool_tab_open() {
+    build_args "$1"
+    run_obsidian tab:open "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_workspaces_list() {
+    build_args "$1"
+    run_obsidian workspaces "${ARGS_OUT[@]}"
+}
+
+tool_workspace_save() {
+    build_args "$1"
+    run_obsidian workspace:save "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_workspace_load() {
+    build_args "$1"
+    run_obsidian workspace:load "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_workspace_delete() {
+    build_args "$1"
+    run_obsidian workspace:delete "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_commands_list() {
+    build_args "$1"
+    run_obsidian commands "${ARGS_OUT[@]}"
+}
+
+tool_command_run() {
+    build_args "$1"
+    run_obsidian command "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_hotkeys_list() {
+    build_args "$1"
+    run_obsidian hotkeys "${ARGS_OUT[@]}"
+}
+
+tool_hotkey_get() {
+    build_args "$1"
+    run_obsidian hotkey "${ARGS_OUT[@]}"
+}
+
+tool_template_insert() {
+    build_args "$1"
+    run_obsidian template:insert "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_file_diff() {
+    build_args "$1"
+    run_obsidian diff "${ARGS_OUT[@]}"
+}
+
+tool_file_history() {
+    build_args "$1"
+    run_obsidian history "${ARGS_OUT[@]}"
+}
+
+tool_file_history_list() {
+    run_obsidian history:list
+}
+
+tool_file_history_read() {
+    build_args "$1"
+    run_obsidian history:read "${ARGS_OUT[@]}"
+}
+
+tool_file_history_restore() {
+    build_args "$1"
+    run_obsidian history:restore "${ARGS_OUT[@]}"
+    echo "ok"
+}
+
+tool_bases_list() {
+    run_obsidian bases
+}
+
+tool_base_views() {
+    build_args "$1"
+    run_obsidian base:views "${ARGS_OUT[@]}"
+}
+
+tool_base_query() {
+    build_args "$1"
+    ARGS_OUT+=("format=json")
+    run_obsidian base:query "${ARGS_OUT[@]}"
+}
+
+tool_base_create() {
+    build_args "$1"
+    ARGS_OUT+=("silent")
+    run_obsidian base:create "${ARGS_OUT[@]}"
     echo "ok"
 }
 

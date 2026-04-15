@@ -125,6 +125,72 @@ case "$cmd" in
     aliases)
         printf 'alias1\n'
         ;;
+    vault)
+        printf 'name\tTestVault\npath\t/tmp/TestVault\nfiles\t42\nfolders\t7\nsize\t12345\n'
+        ;;
+    vaults)
+        printf 'TestVault\nOtherVault\n'
+        ;;
+    recents)
+        printf 'today.md\nyesterday.md\n'
+        ;;
+    random:read)
+        printf '# Random Note\n\nSome random body.\n'
+        ;;
+    workspace)
+        if [ "$is_json" -eq 1 ]; then
+            printf '{"root":{"type":"split","children":[{"type":"leaf","file":"active.md","active":true}]}}\n'
+        else
+            printf 'split\n  leaf active.md (active)\n'
+        fi
+        ;;
+    workspaces)
+        printf 'Writing\nResearch\n'
+        ;;
+    tabs)
+        if [ "$is_json" -eq 1 ]; then
+            printf '[{"id":"t1","file":"active.md","active":true},{"id":"t2","file":"other.md","active":false}]\n'
+        else
+            printf '* active.md\n  other.md\n'
+        fi
+        ;;
+    commands)
+        printf 'editor:toggle-source\napp:go-back\ngraph:open\n'
+        ;;
+    hotkeys)
+        printf 'editor:toggle-source\tCtrl+E\n'
+        ;;
+    hotkey)
+        printf 'Ctrl+E\n'
+        ;;
+    diff)
+        printf '+added line\n-removed line\n'
+        ;;
+    history)
+        printf '1\t2026-01-01 10:00:00\n2\t2026-01-02 11:00:00\n'
+        ;;
+    history:list)
+        printf 'note.md\ntodo.md\n'
+        ;;
+    history:read)
+        printf '# Older version\n'
+        ;;
+    bases)
+        printf 'projects.base\ntasks.base\n'
+        ;;
+    base:views)
+        printf 'Active\nArchive\n'
+        ;;
+    base:query)
+        if [ "$is_json" -eq 1 ]; then
+            printf '[{"id":"row1","name":"Project A"}]\n'
+        else
+            printf 'row1\tProject A\n'
+        fi
+        ;;
+    open|unique|random|web|search:open|daily|\
+    tab:open|workspace:save|workspace:load|workspace:delete|\
+    command|template:insert|history:restore|base:create|\
     create|append|prepend|move|rename|delete|\
     daily:append|daily:prepend|\
     property:set|property:remove|\
