@@ -17,10 +17,10 @@
   "mcpServers": {
     "obsidian": {
       "command": "${CLAUDE_PLUGIN_ROOT}/obsidian-mcp.sh",
-      "args": ["${OBSIDIAN_VAULT}"],
+      "args": ["${OBSIDIAN_VAULT:-default}"],
       "env": {
-        "OBSIDIAN_BIN": "${OBSIDIAN_BIN}",
-        "OBSIDIAN_MCP_LOG": "${OBSIDIAN_MCP_LOG}"
+        "OBSIDIAN_BIN": "${OBSIDIAN_BIN:-obsidian}",
+        "OBSIDIAN_MCP_LOG": "${OBSIDIAN_MCP_LOG:-}"
       }
     }
   }
