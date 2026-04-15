@@ -88,6 +88,21 @@ Claude Code or the server, so double-check the key format:
   Claude Code's own session env vars; it does *not* propagate into the MCP
   server process, so `OBSIDIAN_VAULT` set there won't reach the plugin.
 
+#### Bundled skills
+
+Installing the plugin also bundles two skills under `skills/` that Claude
+Code auto-discovers:
+
+- **`vault`** — general-purpose Obsidian interaction: create/read/search/
+  edit notes, PARA-aware organization, tag and task queries. Triggers on
+  mentions of Obsidian, vaults, notes, PARA, and similar.
+- **`daily`** — morning planning and evening review workflows for the
+  user's daily journal. Depends on `vault`.
+
+Both skills drive the `mcp__obsidian__*` tools exposed by this server, so
+they activate automatically whenever the plugin is installed — no extra
+configuration required.
+
 ### Option 2: Manual clone
 
 Clone the repo:
