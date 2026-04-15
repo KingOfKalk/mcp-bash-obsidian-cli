@@ -245,6 +245,20 @@ text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
 assert_eq "date_time utc %Z is UTC" "UTC" "$text"
 
 # ---------------------------------------------------------------------------
+# 20. tools/call — debug reports effective env values
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":15,"method":"tools/call","params":{"name":"debug","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "debug .env.OBSIDIAN_VAULT" "$VAULT" \
+    "$(printf '%s' "$text" | jq -r '.env.OBSIDIAN_VAULT')"
+assert_eq "debug .env.OBSIDIAN_BIN" "./mock_obsidian.sh" \
+    "$(printf '%s' "$text" | jq -r '.env.OBSIDIAN_BIN')"
+assert_eq "debug .env.OBSIDIAN_MCP_LOG" "/tmp/obsidian-mcp-test.log" \
+    "$(printf '%s' "$text" | jq -r '.env.OBSIDIAN_MCP_LOG')"
+assert_contains "debug .version looks like semver" "." \
+    "$(printf '%s' "$text" | jq -r '.version')"
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 echo
