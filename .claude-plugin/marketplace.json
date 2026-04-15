@@ -12,7 +12,7 @@
       "name": "obsidian",
       "source": "./",
       "description": "MCP server (stdio) wrapping the Obsidian CLI, written in Bash.",
-      "version": "0.5.1",
+      "version": "1.0.0",
       "category": "productivity",
       "keywords": [
         "obsidian",

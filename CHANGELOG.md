@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.5.1...v1.0.0) (2026-04-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* the mcpServers key in .claude-plugin/plugin.json and in user MCP client configs (.mcp.json, ~/.claude.json, etc.) has been renamed from "obsidian" to "cli". Users must update their existing entries and restart their MCP client.
+
+### Features
+
+* rename mcp server key from "obsidian" to "cli" ([#26](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/26)) ([e291930](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/e2919304c5561c5eaf250ef1305bbff77e41bce3))
+
 ## [0.5.1](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.5.0...v0.5.1) (2026-04-15)
 
 
