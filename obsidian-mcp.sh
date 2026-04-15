@@ -17,7 +17,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # 0. Version (managed by release-please)
 # ---------------------------------------------------------------------------
-VERSION="0.3.1" # x-release-please-version
+VERSION="0.4.0" # x-release-please-version
 
 print_version() {
     printf 'obsidian-mcp.sh %s\n' "$VERSION"

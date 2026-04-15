@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.3.1...v0.4.0) (2026-04-15)
+
+
+### Features
+
+* add debug tool reporting effective env configuration ([#17](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/17)) ([01ec2b7](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/01ec2b7727a602909ca046990eab3ff7b1b63451))
+
 ## [0.3.1](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.3.0...v0.3.1) (2026-04-15)
 
 
