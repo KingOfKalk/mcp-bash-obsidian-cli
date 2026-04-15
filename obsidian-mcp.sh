@@ -556,6 +556,11 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
       }
     },
     {
+      "name": "debug",
+      "description": "Return the environment values the server is currently running with (vault, binary path, log path, version). Useful for troubleshooting — these are the knobs you can set via env vars before launching the server.",
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
       "name": "date_time",
       "description": "Return the current date/time. With no args, returns a JSON object (iso, date, time, weekday, timezone, unix, utc). With 'format', returns a single formatted string using strftime conversion specifiers (see 'man date'). Useful for daily-note and journaling workflows.",
       "inputSchema": {
@@ -903,6 +908,26 @@ tool_bookmark_add() {
 }
 
 # ----- utility tools -----
+
+tool_debug() {
+    # Report the effective runtime configuration so clients can see which
+    # env-var knobs are active. OBSIDIAN_VAULT is fixed from argv at startup;
+    # OBSIDIAN_BIN and OBSIDIAN_MCP_LOG come from the environment with
+    # fallbacks. Intended as a troubleshooting aid.
+    jq -nc \
+        --arg vault     "$OBSIDIAN_VAULT" \
+        --arg bin       "$OBSIDIAN_BIN" \
+        --arg log       "$OBSIDIAN_MCP_LOG" \
+        --arg version   "$VERSION" \
+        '{
+            version: $version,
+            env: {
+                OBSIDIAN_VAULT:   $vault,
+                OBSIDIAN_BIN:     $bin,
+                OBSIDIAN_MCP_LOG: $log
+            }
+        }'
+}
 
 tool_date_time() {
     local args_json="$1"
