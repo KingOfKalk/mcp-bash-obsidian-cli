@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.5.0...v0.5.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* rename plugin to obsidian for clearer slash-command labels ([#24](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/24)) ([4776273](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/4776273441e6b1ebb19393f786794491fdd34d59))
+
 ## [0.5.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.4.0...v0.5.0) (2026-04-15)
 
 
