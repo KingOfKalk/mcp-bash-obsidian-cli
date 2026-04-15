@@ -602,26 +602,6 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
       }
     },
     {
-      "name": "vault_info",
-      "description": "Show info (name, path, file/folder counts, size) for the currently pinned vault.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "info": {"type": "string"}
-        }
-      }
-    },
-    {
-      "name": "vaults_list",
-      "description": "List all Obsidian vaults known to this machine.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "total": {"type": "boolean"}
-        }
-      }
-    },
-    {
       "name": "recents_list",
       "description": "List recently opened files. Useful for awareness of what the user has been working on.",
       "inputSchema": {
@@ -1265,16 +1245,6 @@ tool_random_open() {
 tool_random_read() {
     build_args "$1"
     run_obsidian random:read "${ARGS_OUT[@]}"
-}
-
-tool_vault_info() {
-    build_args "$1"
-    run_obsidian vault "${ARGS_OUT[@]}" | kv_to_json
-}
-
-tool_vaults_list() {
-    build_args "$1"
-    run_obsidian vaults "${ARGS_OUT[@]}"
 }
 
 tool_recents_list() {

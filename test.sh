@@ -68,7 +68,7 @@ names=$(printf '%s' "$r" | jq -r '.result.tools[].name' | tr '\n' ' ')
 
 # 3. tools/list — required tools present (core + new UI/awareness set)
 for t in file_read search file_create daily_read tasks_list wordcount file_append property_set date_time \
-         file_open tabs_list workspace_tree recents_list command_run commands_list hotkeys_list vault_info \
+         file_open tabs_list workspace_tree recents_list command_run commands_list hotkeys_list \
          search_open tab_open workspace_save workspace_load template_insert file_history_restore base_query \
          bases_list web_open daily_open; do
     case " $names" in
@@ -295,17 +295,7 @@ assert_contains "command_run invoked 'command'" "cmd=command" "$log_body"
 assert_contains "command_run passes id" "arg=id=app:go-back" "$log_body"
 
 # ---------------------------------------------------------------------------
-# 25. vault_info returns kv->json
-# ---------------------------------------------------------------------------
-r=$(rpc '{"jsonrpc":"2.0","id":26,"method":"tools/call","params":{"name":"vault_info","arguments":{}}}')
-text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
-assert_eq "vault_info.name = TestVault" "TestVault" \
-    "$(printf '%s' "$text" | jq -r '.name')"
-assert_eq "vault_info.files = 42" "42" \
-    "$(printf '%s' "$text" | jq -r '.files')"
-
-# ---------------------------------------------------------------------------
-# 26. recents_list returns text
+# 25. recents_list returns text
 # ---------------------------------------------------------------------------
 r=$(rpc '{"jsonrpc":"2.0","id":27,"method":"tools/call","params":{"name":"recents_list","arguments":{}}}')
 text=$(printf '%s' "$r" | jq -r '.result.content[0].text')

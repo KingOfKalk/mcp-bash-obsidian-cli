@@ -125,12 +125,6 @@ case "$cmd" in
     aliases)
         printf 'alias1\n'
         ;;
-    vault)
-        printf 'name\tTestVault\npath\t/tmp/TestVault\nfiles\t42\nfolders\t7\nsize\t12345\n'
-        ;;
-    vaults)
-        printf 'TestVault\nOtherVault\n'
-        ;;
     recents)
         printf 'today.md\nyesterday.md\n'
         ;;
