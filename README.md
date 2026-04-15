@@ -33,6 +33,13 @@ Code:
 /plugin install obsidian@kingofkalk-obsidian
 ```
 
+or in your terminal:
+
+```bash
+claude plugin marketplace add KingOfKalk/mcp-bash-obsidian-cli
+claude plugin install obsidian@kingofkalk-obsidian
+```
+
 Before starting Claude Code, export the vault name (and optionally override
 the Obsidian binary path or log file) so the plugin's MCP server knows which
 vault to pin to:
