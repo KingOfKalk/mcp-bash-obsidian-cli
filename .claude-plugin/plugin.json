@@ -15,7 +15,7 @@
     "knowledge-management"
   ],
   "mcpServers": {
-    "obsidian": {
+    "cli": {
       "command": "${CLAUDE_PLUGIN_ROOT}/obsidian-mcp.sh",
       "args": ["${OBSIDIAN_VAULT:-default}"],
       "env": {

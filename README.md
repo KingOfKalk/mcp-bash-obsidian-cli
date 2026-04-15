@@ -129,7 +129,7 @@ file. Add an entry for this server under `mcpServers`:
 ```json
 {
   "mcpServers": {
-    "obsidian": {
+    "cli": {
       "command": "/absolute/path/to/obsidian-mcp.sh",
       "args": ["MyVault"],
       "env": {
@@ -155,7 +155,7 @@ Notes:
 ### Where to put the snippet
 
 - **Claude Code (project scope):** `.mcp.json` at the repo root, or run
-  `claude mcp add obsidian /absolute/path/to/obsidian-mcp.sh MyVault`.
+  `claude mcp add cli /absolute/path/to/obsidian-mcp.sh MyVault`.
 - **Claude Code (user scope):** the `mcpServers` section of `~/.claude.json`.
 - **Claude Code (plugin env, per project):** top-level `env` block in
   `$PROJECT_ROOT/.claude/settings.local.json`. See
