@@ -4,8 +4,8 @@
   "author": {
     "name": "KingOfKalk"
   },
-  "homepage": "https://github.com/KingOfKalk/mcp_bash_obsidian_cli",
-  "repository": "https://github.com/KingOfKalk/mcp_bash_obsidian_cli",
+  "homepage": "https://github.com/KingOfKalk/mcp-bash-obsidian-cli",
+  "repository": "https://github.com/KingOfKalk/mcp-bash-obsidian-cli",
   "license": "MIT",
   "keywords": [
     "obsidian",

@@ -29,7 +29,7 @@ manifest under `.claude-plugin/`, so you can install it directly inside Claude
 Code:
 
 ```text
-/plugin marketplace add KingOfKalk/mcp_bash_obsidian_cli
+/plugin marketplace add KingOfKalk/mcp-bash-obsidian-cli
 /plugin install mcp-bash-obsidian-cli@mcp-bash-obsidian-cli
 ```
 
@@ -54,8 +54,8 @@ parallel, prefer the manual configuration in Option 2.
 Clone the repo:
 
 ```sh
-git clone https://github.com/KingOfKalk/mcp_bash_obsidian_cli.git
-cd mcp_bash_obsidian_cli
+git clone https://github.com/KingOfKalk/mcp-bash-obsidian-cli.git
+cd mcp-bash-obsidian-cli
 ```
 
 Note the absolute path to `obsidian-mcp.sh` — you'll need it for your MCP

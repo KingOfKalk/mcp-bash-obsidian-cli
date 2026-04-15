@@ -5,7 +5,7 @@
   "include-v-in-tag": true,
   "packages": {
     ".": {
-      "package-name": "mcp_bash_obsidian_cli",
+      "package-name": "mcp-bash-obsidian-cli",
       "extra-files": [
         {
           "type": "generic",
