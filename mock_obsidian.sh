@@ -94,7 +94,14 @@ case "$cmd" in
         fi
         ;;
     orphans)
-        printf 'lonely.md\n'
+        # Tests use MOCK_ORPHANS_OUTPUT to exercise edge cases (e.g. a
+        # multi-line listing whose first path starts with "Error:" — the
+        # regression case from issue #31).
+        if [ -n "${MOCK_ORPHANS_OUTPUT:-}" ]; then
+            printf '%s' "$MOCK_ORPHANS_OUTPUT"
+        else
+            printf 'lonely.md\n'
+        fi
         ;;
     deadends)
         printf 'end.md\n'

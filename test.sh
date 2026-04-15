@@ -122,10 +122,14 @@ assert_eq "unknown method code" "-32601" \
 
 # ---------------------------------------------------------------------------
 # 10. file_create overwrite without content -> safety guard error
+# Tool-execution failures are returned as isError content (per MCP spec)
+# so the model can see the diagnostic, not as a JSON-RPC error code.
 # ---------------------------------------------------------------------------
 r=$(rpc '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"file_create","arguments":{"name":"x.md","overwrite":true}}}')
-assert_eq "create overwrite guard code" "-32603" \
-    "$(printf '%s' "$r" | jq -r '.error.code')"
+assert_eq "create overwrite guard isError" "true" \
+    "$(printf '%s' "$r" | jq -r '.result.isError')"
+assert_contains "create overwrite guard message" "refusing overwrite" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
 
 # ---------------------------------------------------------------------------
 # 11. file_create happy path -> ok
@@ -345,6 +349,42 @@ assert_contains "daily_open invoked 'daily'" "cmd=daily" "$(cat "$MOCK_ARGS_LOG"
 
 rm -f "$MOCK_ARGS_LOG"
 unset MOCK_ARGS_LOG
+
+# ---------------------------------------------------------------------------
+# 32. links_orphans happy path — single orphan returned as plain text.
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":33,"method":"tools/call","params":{"name":"links_orphans","arguments":{}}}')
+assert_eq "links_orphans returns orphan" "lonely.md" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+assert_eq "links_orphans happy path has no isError" "null" \
+    "$(printf '%s' "$r" | jq -r '.result.isError')"
+
+# ---------------------------------------------------------------------------
+# 33. links_orphans regression for issue #31: a multi-line orphans listing
+# whose first path happens to start with "Error:" must NOT be misclassified
+# as a CLI error. The file list should pass through unchanged.
+# ---------------------------------------------------------------------------
+export MOCK_ORPHANS_OUTPUT=$'Error: retry logic.md\nfoo.md\nbar.md\n'
+r=$(rpc '{"jsonrpc":"2.0","id":34,"method":"tools/call","params":{"name":"links_orphans","arguments":{}}}')
+text=$(printf '%s' "$r" | jq -r '.result.content[0].text')
+assert_eq "links_orphans multi-line not flagged as error" "null" \
+    "$(printf '%s' "$r" | jq -r '.result.isError')"
+assert_contains "links_orphans preserves Error:-prefixed path" "Error: retry logic.md" "$text"
+assert_contains "links_orphans preserves other paths"          "foo.md"                 "$text"
+unset MOCK_ORPHANS_OUTPUT
+
+# ---------------------------------------------------------------------------
+# 34. A genuine CLI error (single-line "Error: ..." on stdout) is surfaced
+# as an isError content result carrying the real message, so the model can
+# diagnose it — not as an opaque -32603 JSON-RPC error.
+# ---------------------------------------------------------------------------
+export MOCK_ORPHANS_OUTPUT='Error: Unknown command: orphans'
+r=$(rpc '{"jsonrpc":"2.0","id":35,"method":"tools/call","params":{"name":"links_orphans","arguments":{}}}')
+assert_eq "cli error surfaces as isError" "true" \
+    "$(printf '%s' "$r" | jq -r '.result.isError')"
+assert_contains "cli error message preserved" "Unknown command: orphans" \
+    "$(printf '%s' "$r" | jq -r '.result.content[0].text')"
+unset MOCK_ORPHANS_OUTPUT
 
 # ---------------------------------------------------------------------------
 # Summary
