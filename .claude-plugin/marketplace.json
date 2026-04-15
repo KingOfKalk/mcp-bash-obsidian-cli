@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "mcp-bash-obsidian-cli",
+      "name": "kingofkalk-mcp-bash-obsidian-cli",
       "source": "./",
       "description": "MCP server (stdio) wrapping the Obsidian CLI, written in Bash.",
       "version": "0.3.1",
