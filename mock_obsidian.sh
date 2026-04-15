@@ -129,7 +129,16 @@ case "$cmd" in
     daily:append|daily:prepend|\
     property:set|property:remove|\
     task|bookmark)
-        # Silent success for write operations.
+        # Silent success for write operations. If MOCK_ARGS_LOG is set,
+        # record the command and each received argv element (one per line)
+        # so tests can inspect what obsidian-mcp.sh passed through.
+        if [ -n "${MOCK_ARGS_LOG:-}" ]; then
+            {
+                printf 'cmd=%s\n' "$cmd"
+                for a in "$@"; do printf 'arg=%s\n' "$a"; done
+                printf -- '---\n'
+            } >> "$MOCK_ARGS_LOG"
+        fi
         :
         ;;
     *)
