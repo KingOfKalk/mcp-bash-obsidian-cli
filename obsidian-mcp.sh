@@ -100,6 +100,15 @@ mcp_content() {
     jq -nc --arg t "$1" '{content:[{type:"text", text:$t}]}'
 }
 
+# mcp_error_content <text> -> tool error result per MCP spec:
+#   {"content":[{"type":"text","text":...}], "isError": true}
+# Used for tool *execution* failures (the tool ran but errored), so the
+# model can see what went wrong and recover. Protocol-level errors
+# (unknown method, bad params) still go through send_error.
+mcp_error_content() {
+    jq -nc --arg t "$1" '{content:[{type:"text", text:$t}], isError:true}'
+}
+
 # ---------------------------------------------------------------------------
 # 4. Tool registry (heredoc)
 # ---------------------------------------------------------------------------
@@ -940,8 +949,16 @@ build_args() {
 #
 # run_obsidian <command> [args...]
 # Calls $OBSIDIAN_BIN with vault=$OBSIDIAN_VAULT prepended. Captures stderr
-# to the log. Treats "Error:" prefix in stdout as failure (the CLI returns
-# 0 even on errors).
+# to the log. Treats a single-line stdout starting with "Error:" as failure
+# (the CLI returns 0 even on errors). On failure, the error text is printed
+# to stdout and the function returns 1 so the caller can surface it to the
+# MCP client.
+#
+# The single-line restriction matters: commands like `orphans`, `files`,
+# and `deadends` emit newline-separated file lists, and a perfectly valid
+# path (e.g. `Error: retry logic.md`) would otherwise trip a mid-stream
+# `Error:` match and fail the whole tool call with no diagnostic. Real CLI
+# errors are always a single "Error: <message>" line on stdout.
 
 run_obsidian() {
     local cmd="$1"
@@ -954,8 +971,10 @@ run_obsidian() {
     local rc=$?
     set -e
 
+    local err=""
     if [ -s "$stderr_file" ]; then
-        log "stderr($cmd): $(cat "$stderr_file")"
+        err=$(cat "$stderr_file")
+        log "stderr($cmd): $err"
     fi
     rm -f "$stderr_file"
 
@@ -963,12 +982,31 @@ run_obsidian() {
         log "non-zero rc=$rc for $cmd"
     fi
 
+    # Detect CLI-reported errors. The real CLI returns exit 0 even on
+    # failure and prints "Error: <message>" to stdout. Only treat output
+    # as an error when it is a single line with that prefix, so multi-line
+    # file listings (orphans, deadends, files) aren't misclassified when a
+    # path legitimately starts with "Error:".
     case "$out" in
-        Error:*|*$'\n'Error:*)
+        *$'\n'*) : ;;
+        Error:*)
             log "cli-error($cmd): $out"
+            printf '%s' "$out"
             return 1
             ;;
     esac
+
+    if [ $rc -ne 0 ]; then
+        # CLI exited non-zero without an "Error:" line on stdout — surface
+        # whatever diagnostic we have (stderr, or a generic fallback) so
+        # the caller can return it to the MCP client.
+        if [ -n "$err" ]; then
+            printf '%s' "$err"
+        else
+            printf 'CLI command %s exited with code %s' "$cmd" "$rc"
+        fi
+        return 1
+    fi
 
     printf '%s' "$out"
 }
@@ -1147,7 +1185,7 @@ tool_file_create() {
     # Safety: refuse `overwrite` without content (would truncate file to 0 bytes).
     if printf '%s' "$1" | jq -e '.overwrite == true and ((.content // "") == "")' >/dev/null 2>&1; then
         log "file_create refused: overwrite=true requires non-empty content"
-        echo "file_create: refusing overwrite=true with empty content (would truncate file to 0 bytes)" >&2
+        printf '%s' "refusing overwrite=true with empty content (would truncate file to 0 bytes)"
         return 1
     fi
     build_args "$1"
@@ -1470,7 +1508,11 @@ dispatch_tool_call() {
     if [ $rc -eq 0 ]; then
         send_result "$id" "$(mcp_content "$out")"
     else
-        send_error "$id" -32603 "Tool failed: $name"
+        local msg="Tool failed: $name"
+        if [ -n "$out" ]; then
+            msg="$msg: $out"
+        fi
+        send_result "$id" "$(mcp_error_content "$msg")"
     fi
 }
 
