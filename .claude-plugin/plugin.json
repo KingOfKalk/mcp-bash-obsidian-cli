@@ -1,5 +1,5 @@
 {
-  "name": "mcp-bash-obsidian-cli",
+  "name": "mcp-bash-cli",
   "description": "MCP server (stdio) wrapping the Obsidian CLI, written in Bash.",
   "author": {
     "name": "KingOfKalk"
