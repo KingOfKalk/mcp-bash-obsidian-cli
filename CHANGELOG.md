@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v1.1.0...v1.1.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* stop misclassifying orphans output as CLI error ([#32](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/32)) ([a0bb5bf](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/a0bb5bf5182dfc0a90b0535e32f9173d42e183ac))
+
 ## [1.1.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v1.0.0...v1.1.0) (2026-04-15)
 
 
