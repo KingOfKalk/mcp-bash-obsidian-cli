@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v0.3.0...v0.3.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* **plugin:** provide defaults for MCP env var expansion ([#15](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/15)) ([3973601](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/3973601dc819959f6763876727bb73fa612e0f51))
+
 ## [0.3.0](https://github.com/KingOfKalk/mcp_bash_obsidian_cli/compare/v0.2.0...v0.3.0) (2026-04-11)
 
 
