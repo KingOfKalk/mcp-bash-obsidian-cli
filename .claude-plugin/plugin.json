@@ -1,0 +1,28 @@
+{
+  "name": "mcp-bash-obsidian-cli",
+  "description": "MCP server (stdio) wrapping the Obsidian CLI, written in Bash.",
+  "version": "0.3.0",
+  "author": {
+    "name": "KingOfKalk"
+  },
+  "homepage": "https://github.com/KingOfKalk/mcp_bash_obsidian_cli",
+  "repository": "https://github.com/KingOfKalk/mcp_bash_obsidian_cli",
+  "license": "MIT",
+  "keywords": [
+    "obsidian",
+    "mcp",
+    "bash",
+    "notes",
+    "knowledge-management"
+  ],
+  "mcpServers": {
+    "obsidian": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/obsidian-mcp.sh",
+      "args": ["${OBSIDIAN_VAULT}"],
+      "env": {
+        "OBSIDIAN_BIN": "${OBSIDIAN_BIN}",
+        "OBSIDIAN_MCP_LOG": "${OBSIDIAN_MCP_LOG}"
+      }
+    }
+  }
+}

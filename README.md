@@ -18,6 +18,39 @@ just a lightweight script that speaks MCP over stdin/stdout and wraps the Obsidi
 
 ## Installation
 
+You have two options: install as a **Claude Code plugin** from the bundled
+marketplace (recommended for Claude Code users), or clone the repo and wire
+the script into your MCP client manually.
+
+### Option 1: Claude Code plugin marketplace
+
+This repo ships a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces)
+manifest under `.claude-plugin/`, so you can install it directly inside Claude
+Code:
+
+```text
+/plugin marketplace add KingOfKalk/mcp_bash_obsidian_cli
+/plugin install mcp-bash-obsidian-cli@mcp-bash-obsidian-cli
+```
+
+Before starting Claude Code, export the vault name (and optionally override
+the Obsidian binary path or log file) so the plugin's MCP server knows which
+vault to pin to:
+
+```sh
+export OBSIDIAN_VAULT=MyVault
+# optional:
+export OBSIDIAN_BIN=/usr/local/bin/obsidian
+export OBSIDIAN_MCP_LOG=/tmp/obsidian-mcp.log
+```
+
+The plugin registers a single MCP server (`obsidian`) that runs
+`obsidian-mcp.sh` out of the plugin cache. To pin to a different vault,
+change `OBSIDIAN_VAULT` and restart Claude Code. For multiple vaults in
+parallel, prefer the manual configuration in Option 2.
+
+### Option 2: Manual clone
+
 Clone the repo:
 
 ```sh

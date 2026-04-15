@@ -1,0 +1,28 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mcp-bash-obsidian-cli",
+  "owner": {
+    "name": "KingOfKalk"
+  },
+  "metadata": {
+    "description": "Marketplace distributing the MCP Bash Obsidian CLI plugin."
+  },
+  "plugins": [
+    {
+      "name": "mcp-bash-obsidian-cli",
+      "source": "./",
+      "description": "MCP server (stdio) wrapping the Obsidian CLI, written in Bash.",
+      "category": "productivity",
+      "keywords": [
+        "obsidian",
+        "mcp",
+        "bash",
+        "notes",
+        "knowledge-management"
+      ],
+      "homepage": "https://github.com/KingOfKalk/mcp_bash_obsidian_cli",
+      "repository": "https://github.com/KingOfKalk/mcp_bash_obsidian_cli",
+      "license": "MIT"
+    }
+  ]
+}
