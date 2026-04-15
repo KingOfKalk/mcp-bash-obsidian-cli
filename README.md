@@ -49,44 +49,50 @@ The plugin registers a single MCP server (`obsidian`) that runs
 change `OBSIDIAN_VAULT` and restart Claude Code. For multiple vaults in
 parallel, prefer the manual configuration in Option 2.
 
-#### Per-project vault overrides (Claude Code)
+#### Configuring the vault and other env vars (Claude Code)
 
-If you'd rather not re-export shell vars every time you switch projects,
-Claude Code can inject MCP env vars on a per-project basis via
-`~/.claude/settings.json`. This is the recommended path for pinning a
-different vault to each project:
+If you'd rather not re-export shell vars every time you start Claude
+Code, you can set `OBSIDIAN_VAULT` (and friends) via a top-level `env`
+block in Claude Code's settings files. Two scopes are supported:
+
+**Per-project — `$PROJECT_ROOT/.claude/settings.local.json`**
+
+Pin a specific vault to a specific project/repo. Create (or edit) the
+project-scope settings file and add a top-level `env` block:
 
 ```json
 {
-  "projects": {
-    "/path/to/project": {
-      "mcpServers": {
-        "plugin:mcp-bash-cli:obsidian": {
-          "env": {
-            "OBSIDIAN_VAULT": "Notes"
-          }
-        }
-      }
-    }
+  "env": {
+    "OBSIDIAN_VAULT": "Notes",
+    "OBSIDIAN_MCP_LOG": ".obsidian_mcp_log.txt"
   }
 }
 ```
 
-Restart Claude Code after editing the file so the override is picked up.
+This is the recommended path when you want different vaults for
+different repos — add the file to `.gitignore` (or keep it locally
+only) so each developer can point at their own vault.
+
+**Global default — `$HOME/.claude/settings.json`**
+
+Set a fallback that applies everywhere Claude Code runs. Same top-level
+`env` shape, just in the user-scope settings file:
+
+```json
+{
+  "env": {
+    "OBSIDIAN_VAULT": "Notes",
+    "OBSIDIAN_MCP_LOG": ".obsidian_mcp_log.txt"
+  }
+}
+```
+
+Precedence: the project `settings.local.json` overrides the user
+`settings.json` when both are present.
+
+Restart Claude Code after editing either file so the env is picked up.
 Verify with `/mcp`, and/or call the server's debug tool to confirm the
 effective env configuration.
-
-**Gotchas** — all three of these fail *silently*, with no warning from
-Claude Code or the server, so double-check the key format:
-
-- **The server key must exactly match the name shown by `/mcp`**, colons
-  and all (`plugin:mcp-bash-cli:obsidian`). Underscore variants such as
-  `plugin_mcp-bash-cli_obsidian` are silently ignored.
-- **`mcpServers` in `.claude/settings.local.json` is not honored** for MCP
-  env overrides — put the block in `~/.claude/settings.json` instead.
-- **A top-level `env` block in `.claude/settings.local.json`** only sets
-  Claude Code's own session env vars; it does *not* propagate into the MCP
-  server process, so `OBSIDIAN_VAULT` set there won't reach the plugin.
 
 #### Bundled skills
 
@@ -137,9 +143,9 @@ file. Add an entry for this server under `mcpServers`:
 
 Notes:
 
-- Replace `MyVault` with the exact name of an existing Obsidian vault. The
-  server is pinned to a single vault per entry — register multiple
-  `mcpServers` entries if you want access to more than one.
+- Replace `MyVault` with the exact name of an existing Obsidian vault.
+  Each server instance is pinned to exactly one vault — see
+  [Limitations](#limitations) for details on running multiple vaults.
 - `command` should be an **absolute path**; most MCP clients don't resolve
   binaries against your shell `PATH`.
 - The `env` block is optional. Only set `OBSIDIAN_BIN` if the `obsidian`
@@ -151,17 +157,28 @@ Notes:
 - **Claude Code (project scope):** `.mcp.json` at the repo root, or run
   `claude mcp add obsidian /absolute/path/to/obsidian-mcp.sh MyVault`.
 - **Claude Code (user scope):** the `mcpServers` section of `~/.claude.json`.
-- **Claude Code (plugin env overrides, per project):** use the
-  `projects.<path>.mcpServers.<server>.env` block in
-  `~/.claude/settings.json`. See
-  [Per-project vault overrides](#per-project-vault-overrides-claude-code)
+- **Claude Code (plugin env, per project):** top-level `env` block in
+  `$PROJECT_ROOT/.claude/settings.local.json`. See
+  [Configuring the vault and other env vars](#configuring-the-vault-and-other-env-vars-claude-code)
   above.
+- **Claude Code (plugin env, global default):** top-level `env` block in
+  `$HOME/.claude/settings.json`. See the same section.
 - **Claude Desktop:** `claude_desktop_config.json`
   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
 Restart your MCP client after editing the config so it picks up the new
 server.
+
+## Limitations
+
+- **One vault per server instance.** This MCP server is pinned to a
+  single Obsidian vault at startup (via the positional `<vault-name>`
+  argument or the `OBSIDIAN_VAULT` env var). It does not switch vaults
+  at runtime and does not expose multiple vaults from one instance. To
+  access more than one vault in parallel, register multiple `mcpServers`
+  entries — one per vault — each pointing at `obsidian-mcp.sh` with a
+  different `OBSIDIAN_VAULT`.
 
 ## Verifying
 
