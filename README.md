@@ -30,7 +30,7 @@ Code:
 
 ```text
 /plugin marketplace add KingOfKalk/mcp-bash-obsidian-cli
-/plugin install mcp-bash-cli@kingofkalk-obsidian
+/plugin install obsidian@kingofkalk-obsidian
 ```
 
 Before starting Claude Code, export the vault name (and optionally override
