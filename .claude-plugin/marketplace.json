@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "kingofkalk-mcp-bash-obsidian-cli",
+  "name": "kingofkalk-obsidian",
   "owner": {
     "name": "KingOfKalk"
   },
@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "mcp-bash-obsidian-cli",
+      "name": "mcp-bash-cli",
       "source": "./",
       "description": "MCP server (stdio) wrapping the Obsidian CLI, written in Bash.",
       "version": "0.3.1",
