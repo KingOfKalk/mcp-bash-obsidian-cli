@@ -10,11 +10,11 @@ just a lightweight script that speaks MCP over stdin/stdout and wraps the Obsidi
 
 ## Requirements
 
+- [Obsidian](https://obsidian.md) 1.12.7 or newer with the
+  [Obsidian CLI](https://obsidian.md/help/cli) enabled
 - `bash` 3.2 or newer
 - coreutils
 - `jq`
-- The [Obsidian CLI](https://github.com/Yakitrak/obsidian-cli) on your `PATH`
-  (or pointed to via the `OBSIDIAN_BIN` environment variable)
 
 ## Installation
 
@@ -253,3 +253,10 @@ real vault):
 ```sh
 ./test.sh
 ```
+
+## Documentation
+
+This MCP server wraps the official Obsidian CLI. Reference documentation:
+
+- [Obsidian CLI — Help](https://obsidian.md/help/cli) — official command reference
+- [Obsidian CLI — source (GitHub)](https://github.com/obsidianmd/obsidian-help/blob/master/en/Extending%20Obsidian/Obsidian%20CLI.md) — the same docs as browsable Markdown
