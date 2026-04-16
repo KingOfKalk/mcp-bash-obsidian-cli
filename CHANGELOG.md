@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v1.1.1...v1.2.0) (2026-04-16)
+
+
+### Features
+
+* add --features flag to selectively enable tool categories ([#34](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/issues/34)) ([5151654](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/commit/5151654a34dacf5b22f970616a519c33e0c9cf40))
+
 ## [1.1.1](https://github.com/KingOfKalk/mcp-bash-obsidian-cli/compare/v1.1.0...v1.1.1) (2026-04-15)
 
 
