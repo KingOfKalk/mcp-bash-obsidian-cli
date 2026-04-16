@@ -387,6 +387,73 @@ assert_contains "cli error message preserved" "Unknown command: orphans" \
 unset MOCK_ORPHANS_OUTPUT
 
 # ---------------------------------------------------------------------------
+# 35. --features=all (default) exposes all tools
+# ---------------------------------------------------------------------------
+r=$(rpc '{"jsonrpc":"2.0","id":40,"method":"tools/list"}')
+count_all=$(printf '%s' "$r" | jq '.result.tools | length')
+assert_eq "default features=all exposes 67 tools" "67" "$count_all"
+
+# ---------------------------------------------------------------------------
+# 36. --features=files exposes only files-category tools
+# ---------------------------------------------------------------------------
+rpc_features() {
+    # Send one JSON-RPC line with a custom --features flag.
+    printf '%s\n' "$2" | ./obsidian-mcp.sh "$VAULT" --features="$1" 2>/dev/null | head -n1
+}
+
+r=$(rpc_features "files" '{"jsonrpc":"2.0","id":41,"method":"tools/list"}')
+count=$(printf '%s' "$r" | jq '.result.tools | length')
+assert_eq "--features=files exposes 16 tools" "16" "$count"
+
+names=$(printf '%s' "$r" | jq -r '.result.tools[].name' | tr '\n' ' ')
+assert_contains "--features=files has file_read" "file_read" " $names"
+assert_contains "--features=files has search" "search" " $names"
+
+# Verify excluded tool is missing
+case " $names" in
+    *" daily_read "*) printf 'FAIL: --features=files should not have daily_read\n'; FAIL=$((FAIL + 1)) ;;
+    *) printf 'PASS: --features=files excludes daily_read\n'; PASS=$((PASS + 1)) ;;
+esac
+
+# ---------------------------------------------------------------------------
+# 37. --features=files,dailies combines two categories
+# ---------------------------------------------------------------------------
+r=$(rpc_features "files,dailies" '{"jsonrpc":"2.0","id":42,"method":"tools/list"}')
+count=$(printf '%s' "$r" | jq '.result.tools | length')
+assert_eq "--features=files,dailies exposes 21 tools" "21" "$count"
+
+names=$(printf '%s' "$r" | jq -r '.result.tools[].name' | tr '\n' ' ')
+assert_contains "--features=files,dailies has daily_read" "daily_read" " $names"
+assert_contains "--features=files,dailies has file_read" "file_read" " $names"
+
+# ---------------------------------------------------------------------------
+# 38. disabled tool call returns error
+# ---------------------------------------------------------------------------
+r=$(rpc_features "files" '{"jsonrpc":"2.0","id":43,"method":"tools/call","params":{"name":"daily_read","arguments":{}}}')
+assert_eq "disabled tool error code" "-32601" \
+    "$(printf '%s' "$r" | jq -r '.error.code')"
+assert_contains "disabled tool error message" "not enabled" \
+    "$(printf '%s' "$r" | jq -r '.error.message')"
+
+# ---------------------------------------------------------------------------
+# 39. unknown category exits with error
+# ---------------------------------------------------------------------------
+out=$(./obsidian-mcp.sh "$VAULT" --features=bogus </dev/null 2>&1; printf 'rc=%s' "$?")
+assert_contains "unknown category prints error" "Unknown feature category" "$out"
+assert_contains "unknown category rc=2" "rc=2" "$out"
+
+# ---------------------------------------------------------------------------
+# 40. --features=bases exposes only 4 base tools
+# ---------------------------------------------------------------------------
+r=$(rpc_features "bases" '{"jsonrpc":"2.0","id":44,"method":"tools/list"}')
+count=$(printf '%s' "$r" | jq '.result.tools | length')
+assert_eq "--features=bases exposes 4 tools" "4" "$count"
+
+names=$(printf '%s' "$r" | jq -r '.result.tools[].name' | tr '\n' ' ')
+assert_contains "--features=bases has bases_list" "bases_list" " $names"
+assert_contains "--features=bases has base_query" "base_query" " $names"
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 echo

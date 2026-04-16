@@ -28,12 +28,34 @@ print_usage() {
 obsidian-mcp.sh ${VERSION} — MCP server (stdio) wrapping the Obsidian CLI.
 
 Usage:
-  obsidian-mcp.sh <vault-name>
+  obsidian-mcp.sh <vault-name> [--features=CATEGORY[,CATEGORY,...]]
   obsidian-mcp.sh --help | -h
   obsidian-mcp.sh --version | -v
 
 Arguments:
   <vault-name>      Name of the Obsidian vault to pin this server to.
+
+Options:
+  --features=LIST   Comma-separated list of feature categories to expose.
+                    Default: all (every tool is available).
+
+Feature categories:
+  files       (16)  File/folder CRUD, search, outline, wordcount
+  dailies      (5)  Daily notes (read, append, prepend, open)
+  metadata     (7)  Properties, tags, aliases
+  tasks        (2)  Task listing and updates
+  bookmarks    (2)  Bookmark listing and creation
+  links        (5)  Backlinks, outgoing, unresolved, orphans, dead-ends
+  templates    (3)  Template listing, reading, insertion
+  navigate    (12)  UI open, random notes, recents, web, workspace, tabs
+  develop      (6)  Command palette, hotkeys, debug, date/time
+  history      (5)  File diff, local recovery versions
+  bases        (4)  Obsidian Bases (database views and queries)
+
+Examples:
+  obsidian-mcp.sh MyVault                            # all tools (67)
+  obsidian-mcp.sh MyVault --features=files           # just files (16)
+  obsidian-mcp.sh MyVault --features=files,dailies,tasks
 
 Environment:
   OBSIDIAN_BIN      Path to the obsidian binary (default: obsidian).
@@ -66,8 +88,82 @@ esac
 OBSIDIAN_VAULT="$1"
 shift
 
+FEATURES="all"
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --features=*) FEATURES="${1#--features=}" ;;
+        *)
+            printf 'Unknown option: %s\n\n' "$1" >&2
+            print_usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
+
 OBSIDIAN_BIN="${OBSIDIAN_BIN:-obsidian}"
 OBSIDIAN_MCP_LOG="${OBSIDIAN_MCP_LOG:-/tmp/obsidian-mcp.log}"
+
+# ---------------------------------------------------------------------------
+# 1b. Feature categories
+# ---------------------------------------------------------------------------
+#
+# Each category is a space-separated list of tool names. The --features flag
+# selects which categories to expose.  "all" (the default) enables everything.
+
+CAT_FILES="file_info file_list file_read file_create file_append file_prepend file_move file_rename file_delete file_open file_unique folder_info folder_list search outline wordcount"
+CAT_DAILIES="daily_read daily_path daily_append daily_prepend daily_open"
+CAT_METADATA="properties_list property_read property_set property_remove tags_list tag_info aliases_list"
+CAT_TASKS="tasks_list task_update"
+CAT_BOOKMARKS="bookmarks_list bookmark_add"
+CAT_LINKS="backlinks links_outgoing links_unresolved links_orphans links_deadends"
+CAT_TEMPLATES="templates_list template_read template_insert"
+CAT_NAVIGATE="random_open random_read recents_list web_open search_open workspace_tree tabs_list tab_open workspaces_list workspace_save workspace_load workspace_delete"
+CAT_DEVELOP="commands_list command_run hotkeys_list hotkey_get debug date_time"
+CAT_HISTORY="file_diff file_history file_history_list file_history_read file_history_restore"
+CAT_BASES="bases_list base_views base_query base_create"
+
+ALL_CATEGORIES="files dailies metadata tasks bookmarks links templates navigate develop history bases"
+
+resolve_features() {
+    local features="$1"
+    local enabled=""
+    if [ "$features" = "all" ]; then
+        enabled="$CAT_FILES $CAT_DAILIES $CAT_METADATA $CAT_TASKS $CAT_BOOKMARKS $CAT_LINKS $CAT_TEMPLATES $CAT_NAVIGATE $CAT_DEVELOP $CAT_HISTORY $CAT_BASES"
+    else
+        local IFS=','
+        for cat in $features; do
+            case "$cat" in
+                files)     enabled="$enabled $CAT_FILES" ;;
+                dailies)   enabled="$enabled $CAT_DAILIES" ;;
+                metadata)  enabled="$enabled $CAT_METADATA" ;;
+                tasks)     enabled="$enabled $CAT_TASKS" ;;
+                bookmarks) enabled="$enabled $CAT_BOOKMARKS" ;;
+                links)     enabled="$enabled $CAT_LINKS" ;;
+                templates) enabled="$enabled $CAT_TEMPLATES" ;;
+                navigate)  enabled="$enabled $CAT_NAVIGATE" ;;
+                develop)   enabled="$enabled $CAT_DEVELOP" ;;
+                history)   enabled="$enabled $CAT_HISTORY" ;;
+                bases)     enabled="$enabled $CAT_BASES" ;;
+                *)
+                    printf 'Unknown feature category: %s\nValid categories: %s\n' "$cat" "$ALL_CATEGORIES" >&2
+                    exit 2
+                    ;;
+            esac
+        done
+    fi
+    printf '%s' "$enabled"
+}
+
+ENABLED_TOOLS=$(resolve_features "$FEATURES")
+
+# is_tool_enabled <name> — check whether a tool is in the active set.
+is_tool_enabled() {
+    case " $ENABLED_TOOLS " in
+        *" $1 "*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 # ---------------------------------------------------------------------------
 # 2. Logging helper (never writes to stdout)
@@ -900,6 +996,14 @@ TOOLS_JSON=$(cat <<'JSON_EOF'
 JSON_EOF
 )
 
+# Filter TOOLS_JSON to only include tools from enabled feature categories.
+if [ "$FEATURES" != "all" ]; then
+    TOOLS_JSON=$(printf '%s' "$TOOLS_JSON" | jq -c --arg tools "$ENABLED_TOOLS" '
+        ($tools | split(" ") | map(select(length > 0))) as $allowed |
+        .tools |= map(select(.name as $n | $allowed | index($n)))
+    ')
+fi
+
 # ---------------------------------------------------------------------------
 # 5. CLI argument builder
 # ---------------------------------------------------------------------------
@@ -1499,6 +1603,11 @@ dispatch_tool_call() {
         return
     fi
 
+    if ! is_tool_enabled "$name"; then
+        send_error "$id" -32601 "Tool not enabled: $name (adjust --features to include it)"
+        return
+    fi
+
     local out rc
     set +e
     out=$("$fn" "$args" 2>>"$OBSIDIAN_MCP_LOG")
@@ -1526,7 +1635,7 @@ INIT_RESULT=$(jq -nc --arg v "$VERSION" '{
   capabilities: {tools: {}}
 }')
 
-log "obsidian-mcp.sh starting; vault=$OBSIDIAN_VAULT bin=$OBSIDIAN_BIN"
+log "obsidian-mcp.sh starting; vault=$OBSIDIAN_VAULT bin=$OBSIDIAN_BIN features=$FEATURES"
 
 while IFS= read -r line; do
     [ -z "$line" ] && continue
