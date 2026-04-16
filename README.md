@@ -177,6 +177,58 @@ Notes:
 Restart your MCP client after editing the config so it picks up the new
 server.
 
+## Limiting exposed tools
+
+By default, the server exposes all 67 tools. If you're working with a
+smaller context window, you can restrict the tool set with the `--features`
+flag to reduce token overhead:
+
+```sh
+# Only file operations (16 tools instead of 67)
+./obsidian-mcp.sh MyVault --features=files
+
+# Typical daily workflow
+./obsidian-mcp.sh MyVault --features=files,dailies,tasks
+
+# Vault analysis
+./obsidian-mcp.sh MyVault --features=files,metadata,links
+```
+
+In an `mcp.json` config, pass the flag via `args`:
+
+```json
+{
+  "mcpServers": {
+    "cli": {
+      "command": "/absolute/path/to/obsidian-mcp.sh",
+      "args": ["MyVault", "--features=files,dailies,tasks"]
+    }
+  }
+}
+```
+
+Without `--features` (or with `--features=all`), every tool is available —
+the same behavior as before this flag existed.
+
+### Feature categories
+
+| Category | Tools | Description |
+|----------|------:|-------------|
+| `files` | 16 | File/folder CRUD, search, outline, wordcount |
+| `dailies` | 5 | Daily notes (read, path, append, prepend, open) |
+| `metadata` | 7 | Properties, tags, aliases |
+| `tasks` | 2 | Task listing and updates |
+| `bookmarks` | 2 | Bookmark listing and creation |
+| `links` | 5 | Backlinks, outgoing, unresolved, orphans, dead-ends |
+| `templates` | 3 | Template listing, reading, insertion |
+| `navigate` | 12 | UI open, random notes, recents, web viewer, workspace, tabs |
+| `develop` | 6 | Command palette, hotkeys, debug, date/time |
+| `history` | 5 | File diff, local recovery versions |
+| `bases` | 4 | Obsidian Bases (database views and queries) |
+
+Tools that are not enabled are hidden from `tools/list` and rejected on
+`tools/call`, so the model never sees them.
+
 ## Limitations
 
 - **One vault per server instance.** This MCP server is pinned to a
